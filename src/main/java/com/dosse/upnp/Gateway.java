@@ -18,6 +18,7 @@
  */
 package com.dosse.upnp;
 
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -174,6 +175,7 @@ class Gateway {
         params.put("NewLeaseDuration", "" + duration);
         try {
             Map<String, String> r = command("AddPortMapping", params);
+            System.out.println(r);
             return r.get("errorCode") == null;
         } catch (Exception ex) {
             return false;
@@ -225,6 +227,15 @@ class Gateway {
             }
         }
         return response;
+    }
+
+    @Nullable
+    public Map<String, String> customCommand(String command, @Nullable Map<String, String> params){
+        try {
+            return command(command, params);
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
 }

@@ -81,6 +81,10 @@ public class PortMappingEntity {
         return externalPort;
     }
 
+    public int getLeaseDuration(){
+        return leaseDuration;
+    }
+
     @Override
     public String toString() {
         return "PortMappingEntity{internalClient=%s, protocol=%s, enable=%s, leaseDuration=%s, internalPort=%s, externalPort=%s, portMappingDescription=%s}"

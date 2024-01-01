@@ -88,6 +88,13 @@ Gets the IP address of the router. Return internal IP address as string, or null
 
 Gets the port mappings of the router. Recommended to use this method with caution due to its labor-intensive nature. Return Set port mappings as PortMappingEntity, or empty if not available
 
+### `customCommand`
+
+Can run custom upnp command WANIPConnection:1. Return map of strings response, or null, if error
+
+#### Parameters
+- `params` - request parameters, Map<String, String>
+
 <hr>
 
 ## Examples
@@ -133,11 +140,15 @@ Gets the port mappings of the router. Recommended to use this method with cautio
     
     public class Main {
         public static void main(String[] args) {
-            int duration = 30;
-            TimerTask task = new TimerTask() {
-                public void run() { UPnP.openPortTCP(23456, duration); }
-            };
-            new Timer().scheduleAtFixedRate(task, 0, duration - 10L); // -10 - time margin to keep the port open
+          int duration = 180;
+          int taskPeriod = duration - 10; // -10 - time margin to keep the port open
+          TimerTask task = new TimerTask() {
+            public void run() {
+              UPnP.closePortTCP(23456);
+              UPnP.openPortTCP(23456, duration);
+            }
+          };
+          new Timer().scheduleAtFixedRate(task, 0, taskPeriod * 1_000L);
         }
     }
 ```

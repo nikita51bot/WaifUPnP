@@ -18,7 +18,10 @@
  */
 package com.dosse.upnp;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -239,5 +242,10 @@ public class UPnP {
      */
     public static Set<PortMappingEntity> getPortMappings() {
         return isUPnPAvailable() ? defaultGW.getPortMappings() : Collections.<PortMappingEntity>emptySet();
+    }
+
+    @Nullable
+    public static Map<String, String> customCommand(String command, @Nullable Map<String, String> params){
+        return isUPnPAvailable() ? defaultGW.customCommand(command, params) : null;
     }
 }
