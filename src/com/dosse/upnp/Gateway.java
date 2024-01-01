@@ -41,14 +41,14 @@ import java.util.*;
 class Gateway {
 
     private final Inet4Address iface;
-    private final InetAddress routerip;
+    private final InetAddress routerIp;
 
     private String serviceType = null;
     private String controlURL = null;
 
-    public Gateway(byte[] data, Inet4Address ip, InetAddress gatewayip) throws RuntimeException, ParserConfigurationException, IOException, SAXException {
+    public Gateway(byte[] data, Inet4Address ip, InetAddress gatewayIp) throws RuntimeException, ParserConfigurationException, IOException, SAXException {
         iface = ip;
-        routerip = gatewayip;
+        routerIp = gatewayIp;
         String location = null;
         StringTokenizer st = new StringTokenizer(new String(data), "\n");
         while (st.hasMoreTokens()) {
@@ -144,7 +144,7 @@ class Gateway {
     }
 
     public String getGatewayIP() {
-        return routerip.getHostAddress();
+        return routerIp.getHostAddress();
     }
 
     public String getLocalIP() {
@@ -161,7 +161,7 @@ class Gateway {
         }
     }
 
-    public boolean openPort(int port, boolean udp, String name, int duration) {
+    public boolean openCommonPort(int port, boolean udp, String name, int duration) {
         assertPort(port);
         Map<String, String> params = new HashMap<String, String>();
         params.put("NewRemoteHost", "");

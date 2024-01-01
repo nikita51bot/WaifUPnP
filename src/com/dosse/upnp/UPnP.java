@@ -112,7 +112,7 @@ public class UPnP {
      * @return true if the operation was successful, false otherwise
      */
     public static boolean openPortTCP(int port, String name, int duration) {
-        return isUPnPAvailable() && defaultGW.openPort(port, false, name, duration);
+        return isUPnPAvailable() && defaultGW.openCommonPort(port, false, name, duration);
     }
 
     /**
@@ -156,7 +156,7 @@ public class UPnP {
      * @return true if the operation was successful, false otherwise
      */
     public static boolean openPortUDP(int port, String name, int duration) {
-        return isUPnPAvailable() && defaultGW.openPort(port, true, name, duration);
+        return isUPnPAvailable() && defaultGW.openCommonPort(port, true, name, duration);
     }
 
     /**
