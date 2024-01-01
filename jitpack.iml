@@ -1,0 +1,3 @@
+jdk:
+  - openjdk8
+build: ant init compile -pre-jar -do-jar -post-jar
