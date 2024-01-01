@@ -1,5 +1,2 @@
 jdk:
   - openjdk8
-build: ant init compile -pre-jar -do-jar -post-jar
-artifacts:
-  - /home/jitpack/build/dist/WaifUPnP.jar
