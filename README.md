@@ -1,5 +1,9 @@
 # WaifUPnP 
 
+<hr>
+
+[![](https://jitpack.io/v/nikita51bot/WaifUPnP.svg)](https://jitpack.io/#nikita51bot/WaifUPnP)
+
 UPnP Port Forwarding for Java.
 
 ## Features
