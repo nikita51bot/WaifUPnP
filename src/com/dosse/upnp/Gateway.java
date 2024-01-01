@@ -18,35 +18,37 @@
  */
 package com.dosse.upnp;
 
-import java.net.HttpURLConnection;
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.StringTokenizer;
-import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.traversal.DocumentTraversal;
 import org.w3c.dom.traversal.NodeFilter;
 import org.w3c.dom.traversal.NodeIterator;
+import org.xml.sax.SAXException;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.URL;
+import java.util.*;
 
 /**
- * 
  * @author Federico
  */
 class Gateway {
 
-    private Inet4Address iface;
-    private InetAddress routerip;
+    private final Inet4Address iface;
+    private final InetAddress routerip;
 
-    private String serviceType = null, controlURL = null;
+    private String serviceType = null;
+    private String controlURL = null;
 
-    public Gateway(byte[] data, Inet4Address ip, InetAddress gatewayip) throws Exception {
+    public Gateway(byte[] data, Inet4Address ip, InetAddress gatewayip) throws RuntimeException, ParserConfigurationException, IOException, SAXException {
         iface = ip;
-        routerip=gatewayip;
+        routerip = gatewayip;
         String location = null;
         StringTokenizer st = new StringTokenizer(new String(data), "\n");
         while (st.hasMoreTokens()) {
@@ -60,7 +62,7 @@ class Gateway {
             }
         }
         if (location == null) {
-            throw new Exception("Unsupported Gateway");
+            throw new RuntimeException("Unsupported Gateway");
         }
         Document d;
         d = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(location);
@@ -68,7 +70,8 @@ class Gateway {
         for (int i = 0; i < services.getLength(); i++) {
             Node service = services.item(i);
             NodeList n = service.getChildNodes();
-            String serviceType = null, controlURL = null;
+            serviceType = null;
+            controlURL = null;
             for (int j = 0; j < n.getLength(); j++) {
                 Node x = n.item(j);
                 if (x.getNodeName().trim().equalsIgnoreCase("serviceType")) {
@@ -86,11 +89,11 @@ class Gateway {
             }
         }
         if (controlURL == null) {
-            throw new Exception("Unsupported Gateway");
+            throw new RuntimeException("Unsupported Gateway");
         }
         int slash = location.indexOf("/", 7); //finds first slash after http://
         if (slash == -1) {
-            throw new Exception("Unsupported Gateway");
+            throw new RuntimeException("Unsupported Gateway");
         }
         location = location.substring(0, slash);
         if (!controlURL.startsWith("/")) {
@@ -99,18 +102,24 @@ class Gateway {
         controlURL = location + controlURL;
     }
 
+    private static void assertPort(int port) {
+        if (port < 0 || port > 65535) {
+            throw new IllegalArgumentException("Invalid port");
+        }
+    }
+
     private Map<String, String> command(String action, Map<String, String> params) throws Exception {
         Map<String, String> ret = new HashMap<String, String>();
-        String soap = "<?xml version=\"1.0\"?>\r\n" + "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">"
+        StringBuilder soap = new StringBuilder("<?xml version=\"1.0\"?>\r\n" + "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">"
                 + "<SOAP-ENV:Body>"
-                + "<m:" + action + " xmlns:m=\"" + serviceType + "\">";
+                + "<m:" + action + " xmlns:m=\"" + serviceType + "\">");
         if (params != null) {
             for (Map.Entry<String, String> entry : params.entrySet()) {
-                soap += "<" + entry.getKey() + ">" + entry.getValue() + "</" + entry.getKey() + ">";
+                soap.append("<").append(entry.getKey()).append(">").append(entry.getValue()).append("</").append(entry.getKey()).append(">");
             }
         }
-        soap += "</m:" + action + "></SOAP-ENV:Body></SOAP-ENV:Envelope>";
-        byte[] req = soap.getBytes();
+        soap.append("</m:").append(action).append("></SOAP-ENV:Body></SOAP-ENV:Envelope>");
+        byte[] req = soap.toString().getBytes();
         HttpURLConnection conn = (HttpURLConnection) new URL(controlURL).openConnection();
         conn.setRequestMethod("POST");
         conn.setDoOutput(true);
@@ -134,7 +143,9 @@ class Gateway {
         return ret;
     }
 
-    public String getGatewayIP(){ return routerip.getHostAddress(); }
+    public String getGatewayIP() {
+        return routerip.getHostAddress();
+    }
 
     public String getLocalIP() {
         return iface.getHostAddress();
@@ -150,10 +161,8 @@ class Gateway {
         }
     }
 
-    public boolean openPort(int port, boolean udp) {
-        if (port < 0 || port > 65535) {
-            throw new IllegalArgumentException("Invalid port");
-        }
+    public boolean openPort(int port, boolean udp, String name, int duration) {
+        assertPort(port);
         Map<String, String> params = new HashMap<String, String>();
         params.put("NewRemoteHost", "");
         params.put("NewProtocol", udp ? "UDP" : "TCP");
@@ -161,8 +170,8 @@ class Gateway {
         params.put("NewExternalPort", "" + port);
         params.put("NewInternalPort", "" + port);
         params.put("NewEnabled", "1");
-        params.put("NewPortMappingDescription", "WaifUPnP");
-        params.put("NewLeaseDuration", "0");
+        params.put("NewPortMappingDescription", name);
+        params.put("NewLeaseDuration", "" + duration);
         try {
             Map<String, String> r = command("AddPortMapping", params);
             return r.get("errorCode") == null;
@@ -172,9 +181,7 @@ class Gateway {
     }
 
     public boolean closePort(int port, boolean udp) {
-        if (port < 0 || port > 65535) {
-            throw new IllegalArgumentException("Invalid port");
-        }
+        assertPort(port);
         Map<String, String> params = new HashMap<String, String>();
         params.put("NewRemoteHost", "");
         params.put("NewProtocol", udp ? "UDP" : "TCP");
@@ -188,9 +195,7 @@ class Gateway {
     }
 
     public boolean isMapped(int port, boolean udp) {
-        if (port < 0 || port > 65535) {
-            throw new IllegalArgumentException("Invalid port");
-        }
+        assertPort(port);
         Map<String, String> params = new HashMap<String, String>();
         params.put("NewRemoteHost", "");
         params.put("NewProtocol", udp ? "UDP" : "TCP");
@@ -204,7 +209,22 @@ class Gateway {
         } catch (Exception ex) {
             return false;
         }
+    }
 
+
+    public Set<PortMappingEntity> getPortMappings() {
+        Set<PortMappingEntity> response = new HashSet<PortMappingEntity>();
+        for (int i = 0; i < 1000; i++) {
+            Map<String, String> params = new HashMap<String, String>();
+            params.put("NewPortMappingIndex", "" + i);
+            try {
+                PortMappingEntity entity = PortMappingEntity.fromResponse(command("GetGenericPortMappingEntry", params));
+                response.add(entity);
+            } catch (Exception ex) {
+                return response;
+            }
+        }
+        return response;
     }
 
 }
