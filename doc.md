@@ -2,7 +2,7 @@
 
 <hr>
 
-- [Methods](#methods):
+- [Methods](#methods)
   - [openPortTCP](#openporttcp)
   - [openPortUDP](#openportudp)
   - [closePortTCP](#closeporttcp)
