@@ -230,12 +230,11 @@ class Gateway {
     }
 
     @Nullable
-    public Map<String, String> customCommand(String command, @Nullable Map<String, String> params){
+    public Map<String, String> customCommand(String command, @Nullable Map<String, String> params) {
         try {
             return command(command, params);
         } catch (Exception ex) {
             return null;
         }
     }
-
 }

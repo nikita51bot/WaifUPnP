@@ -69,8 +69,16 @@ public class PortMappingEntity {
         return enable;
     }
 
+    public InetAddress getInternalClient() {
+        return internalClient;
+    }
+
     public String getDescription() {
         return portMappingDescription;
+    }
+
+    public Protocol getProtocol() {
+        return this.protocol;
     }
 
     public int getInternalPort() {
@@ -81,7 +89,7 @@ public class PortMappingEntity {
         return externalPort;
     }
 
-    public int getLeaseDuration(){
+    public int getLeaseDuration() {
         return leaseDuration;
     }
 

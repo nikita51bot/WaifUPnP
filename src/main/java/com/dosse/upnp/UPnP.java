@@ -245,7 +245,7 @@ public class UPnP {
     }
 
     @Nullable
-    public static Map<String, String> customCommand(String command, @Nullable Map<String, String> params){
+    public static Map<String, String> customCommand(String command, @Nullable Map<String, String> params) {
         return isUPnPAvailable() ? defaultGW.customCommand(command, params) : null;
     }
 }
