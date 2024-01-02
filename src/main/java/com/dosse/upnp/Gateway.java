@@ -172,7 +172,6 @@ class Gateway {
         params.put("NewLeaseDuration", "" + duration);
         try {
             Map<String, String> r = command("AddPortMapping", params);
-            System.out.println(r);
             return r.get("errorCode") == null;
         } catch (Exception ex) {
             return false;
