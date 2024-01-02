@@ -19,14 +19,11 @@ public class PortMappingEntity {
         InetAddress internalClient;
         try {
             internalClient = InetAddress.getByName(response.get("NewInternalClient"));
-
-
         } catch (UnknownHostException e) {
             throw new IllegalArgumentException("Can't represent internalClient string ip as ip");
         }
         Protocol protocol = response.get("NewProtocol").equalsIgnoreCase("tcp") ? Protocol.TCP : Protocol.UDP;
         boolean enable = response.get("NewEnabled").equals("1");
-
         int leaseDuration;
         try {
             leaseDuration = Integer.parseInt(response.get("NewLeaseDuration"));

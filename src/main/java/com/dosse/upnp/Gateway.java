@@ -30,10 +30,7 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.URL;
+import java.net.*;
 import java.util.*;
 
 /**
@@ -227,6 +224,47 @@ class Gateway {
             }
         }
         return response;
+    }
+
+    @Nullable
+    public PortMappingEntity getPortMapping(int port, boolean udp){
+        assertPort(port);
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("NewRemoteHost", "");
+        params.put("NewProtocol", udp ? "UDP" : "TCP");
+        params.put("NewExternalPort", "" + port);
+        Map<String, String> r;
+        try {
+            r = command("GetSpecificPortMappingEntry", params);
+        } catch (Exception ex) {
+            return null;
+        }
+
+        InetAddress internalClient;
+        try {
+            internalClient = InetAddress.getByName(r.get("NewInternalClient"));
+        } catch (UnknownHostException e) {
+            throw new IllegalArgumentException("Can't represent internalClient string ip as ip");
+        }
+        PortMappingEntity.Protocol protocol = udp ? PortMappingEntity.Protocol.UDP : PortMappingEntity.Protocol.TCP;
+        boolean enable = r.get("NewEnabled").equals("1");
+        int leaseDuration;
+        try {
+            leaseDuration = Integer.parseInt(r.get("NewLeaseDuration"));
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException("Can't represent leaseDuration as integer");
+        }
+
+        int internalPort;
+        try {
+            internalPort = Integer.parseInt(r.get("NewInternalPort"));
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException("Can't represent internalPort as integer");
+        }
+
+        String portMappingDescription = r.get("NewPortMappingDescription");
+
+        return new PortMappingEntity(internalClient, protocol, enable, leaseDuration, internalPort, port, portMappingDescription);
     }
 
     @Nullable

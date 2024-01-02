@@ -245,6 +245,16 @@ public class UPnP {
     }
 
     @Nullable
+    public static PortMappingEntity getPortMappingTCP(int port) {
+        return isUPnPAvailable() ? defaultGW.getPortMapping(port, false) : null;
+    }
+
+    @Nullable
+    public static PortMappingEntity getPortMappingUDP(int port) {
+        return isUPnPAvailable() ? defaultGW.getPortMapping(port, true) : null;
+    }
+
+    @Nullable
     public static Map<String, String> customCommand(String command, @Nullable Map<String, String> params) {
         return isUPnPAvailable() ? defaultGW.customCommand(command, params) : null;
     }
